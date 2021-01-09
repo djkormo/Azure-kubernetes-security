@@ -142,12 +142,6 @@ then
      
      TENANT_ID=$(az account show --query tenantId --output tsv) 
     
-     # add myself to admin group 
-
-     USER_ID=$(az ad user show --id kormo_gos.pl#EXT#@ITSpec340.onmicrosoft.com --query objectId --output tsv)  
-
-     az ad group member add --group "${AKS_NAME}AdminGroup" --member-id $USER_ID
-     
      # Get the virtual network resource ID
      VNET_ID=$(az network vnet show --resource-group $AKS_RG --name "vnet_$AKS_NAME" --query id -o tsv)
 
@@ -219,6 +213,12 @@ then
 
     az network public-ip list --resource-group $RG_VM_POOL --query "[?name=='myIngressPublicIP'].[dnsSettings.fqdn]" -o tsv
 
+
+     # optionally add myself to admin group 
+
+     USER_ID=$(az ad user show --id kormo_gos.pl#EXT#@ITSpec340.onmicrosoft.com --query objectId --output tsv)  
+
+     az ad group member add --group "${AKS_NAME}AdminGroup" --member-id $USER_ID
 
 fi # of create
 
