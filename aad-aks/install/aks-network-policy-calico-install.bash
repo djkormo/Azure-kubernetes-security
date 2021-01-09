@@ -149,7 +149,7 @@ then
     az role assignment create --assignee $SP_ID --scope $VNET_ID --role Contributor
 
     # Get the virtual network subnet resource ID
-    SUBNET_ID=$(az network vnet subnet show --resource-group $AKS_RG --vnet-name "vnet_$AKS_NAME" --name myAKSSubnet --query id -o tsv)
+    SUBNET_ID=$(az network vnet subnet show --resource-group $AKS_RG --vnet-name "vnet_$AKS_NAME" --name "subnet_${AKS_NAME}" --query id -o tsv)
 
     # Create the AKS cluster and specify the virtual network and service principal information
     # Enable network policy by using the `--network-policy` parameter
