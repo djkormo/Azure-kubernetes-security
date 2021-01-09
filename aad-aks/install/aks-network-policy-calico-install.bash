@@ -10,6 +10,9 @@
 
 # aks-network-policy-calico-install.bash -n aks-security2020 -g rg-aks -l northeurope -o create
 
+set -u  # Treat unset variables as an error when substituting
+set -e # Exit immediately if a command exits with a non-zero status.
+
 me="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 
 display_usage() { 
@@ -46,7 +49,7 @@ if [ -z "$AKS_NAME" ]
 then
       echo "\$AKS_NAME is empty"
 	  display_usage
-	  exit 
+	  exit 1
 else
       echo "\$AKS_NAME is NOT empty"
 fi
@@ -69,9 +72,9 @@ else
       echo "\$AKS_LOCATION is NOT empty"
 fi
 
-az aks get-versions -l $AKS_LOCATION #--query 'orchestrators[-1].orchestratorVersion' -o tsv
+az aks get-versions -l ${AKS_LOCATION} #--query 'orchestrators[-1].orchestratorVersion' -o tsv
 
-AKS_VERSION=$(az aks get-versions -l $AKS_LOCATION --query 'orchestrators[-1].orchestratorVersion' -o tsv)
+AKS_VERSION=$(az aks get-versions -l ${AKS_LOCATION} --query 'orchestrators[-1].orchestratorVersion' -o tsv)
 
 AKS_NODES=2
 AKS_VM_SIZE=Standard_B2s
@@ -82,7 +85,7 @@ echo "AKS_NODES: $AKS_NODES"
 echo "AKS_VERSION: $AKS_VERSION"
 echo "AKS_VM_SIZE: $AKS_VM_SIZE"
 
-ACR_NAME="acrsecurity2020$RANDOM"
+ACR_NAME="acr${AKS_NAME}${RANDOM}"
 
 if [ "$AKS_OPERATION" = "create" ] ;
 then
@@ -103,12 +106,12 @@ then
     az provider register --namespace Microsoft.ContainerService
 
     # Create a resource group
-    az group create --name $AKS_RG --location $AKS_LOCATION
+    az group create --name $AKS_RG --location ${AKS_LOCATION}
 
     # Create a virtual network and subnet
     az network vnet create \
-        --resource-group $AKS_RG \
-        --name "vnet_$AKS_NAME" \
+        --resource-group {$AKS_RG} \
+        --name "vnet_${AKS_NAME}" \
         --address-prefixes 10.0.0.0/8 \
         --subnet-name myAKSSubnet \
         --subnet-prefix 10.240.0.0/16
