@@ -16,11 +16,11 @@ me="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 
 display_usage() { 
 	echo "Example of usage:" 
-	echo -e "bash $me -n aks-security2020 -g rg-aks -l northeurope -o create" 
-	echo -e "bash $me -n aks-security2020 -g rg-aks -l northeurope -o stop" 
-	echo -e "bash $me -n aks-security2020 -g rg-aks -l northeurope -o start" 
-	echo -e "bash $me -n aks-security2020 -g rg-aks -l northeurope -o status" 
-	echo -e "bash $me -n aks-security2020 -g rg-aks -l northeurope -o delete" 
+	echo -e "bash $me -n aks-security2020 -g aks-rg -l northeurope -o create" 
+	echo -e "bash $me -n aks-security2020 -g aks-rg -l northeurope -o stop" 
+	echo -e "bash $me -n aks-security2020 -g aks-rg -l northeurope -o start" 
+	echo -e "bash $me -n aks-security2020 -g aks-rg -l northeurope -o status" 
+	echo -e "bash $me -n aks-security2020 -g aks-rg -l northeurope -o delete" 
 	} 
 
 while getopts n:g:o:l: option
@@ -116,7 +116,7 @@ then
         --resource-group ${AKS_RG} \
         --name "vnet_${AKS_NAME}" \
         --address-prefixes 10.0.0.0/8 \
-        --subnet-name myAKSSubnet \
+        --subnet-name "subnet_${AKS_NAME}" \
         --subnet-prefix 10.240.0.0/16
 
    az network vnet list --resource-group ${AKS_RG} -o table
