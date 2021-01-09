@@ -10,8 +10,7 @@
 
 # aks-network-policy-calico-install.bash -n aks-security2020 -g rg-aks -l northeurope -o create
 
-set -u  # Treat unset variables as an error when substituting
-set -e # Exit immediately if a command exits with a non-zero status.
+
 
 me="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 
@@ -72,51 +71,55 @@ else
       echo "\$AKS_LOCATION is NOT empty"
 fi
 
-az aks get-versions -l ${AKS_LOCATION} #--query 'orchestrators[-1].orchestratorVersion' -o tsv
+set -u  # Treat unset variables as an error when substituting
+set -e # Exit immediately if a command exits with a non-zero status.
+
+
+az aks get-versions -l ${AKS_LOCATION}  # --query 'orchestrators[-1].orchestratorVersion' -o tsv
 
 AKS_VERSION=$(az aks get-versions -l ${AKS_LOCATION} --query 'orchestrators[-1].orchestratorVersion' -o tsv)
 
 AKS_NODES=2
 AKS_VM_SIZE=Standard_B2s
 
+echo "AKS_RG: $AKS_RG"
 echo "AKS_NAME: $AKS_NAME"
 echo "AKS_LOCATION: $AKS_LOCATION"
 echo "AKS_NODES: $AKS_NODES"
 echo "AKS_VERSION: $AKS_VERSION"
 echo "AKS_VM_SIZE: $AKS_VM_SIZE"
 
-ACR_NAME="acr${AKS_NAME}${RANDOM}"
+ACR_NAME="acr${RANDOM}"
 
 if [ "$AKS_OPERATION" = "create" ] ;
 then
 
     echo "Creating AKS cluster...";
 
-    # Install the aks-preview extension
+    # https://www.skylinesacademy.com/blog/2020/6/11/new-and-improved-method-of-integrating-azure-ad-in-azure-kubernetes-service-aks-preview
+
     az extension add --name aks-preview
+    az feature register --name AAD-V2 --namespace Microsoft.ContainerService 
 
-    # Update the extension to make sure you have the latest version installed
-    az extension update --name aks-preview
+    sleep 15
 
-    az feature register --name PodSecurityPolicyPreview --namespace Microsoft.ContainerService
+    az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/AAD-V2')].{Name:name,State:properties.state}"
 
-    az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/PodSecurityPolicyPreview')].{Name:name,State:properties.state}"
-    # wait until you have State = Registered
+    az provider register --namespace Microsoft.ContainerService 
 
-    az provider register --namespace Microsoft.ContainerService
 
     # Create a resource group
-    az group create --name $AKS_RG --location ${AKS_LOCATION}
+    az group create --name "${AKS_RG}" --location ${AKS_LOCATION}
 
     # Create a virtual network and subnet
     az network vnet create \
-        --resource-group {$AKS_RG} \
+        --resource-group ${AKS_RG} \
         --name "vnet_${AKS_NAME}" \
         --address-prefixes 10.0.0.0/8 \
         --subnet-name myAKSSubnet \
         --subnet-prefix 10.240.0.0/16
 
-
+   az network vnet list --resource-group ${AKS_RG} -o table
 
     # Create a service principal and read in the application ID
     SP=$(az ad sp create-for-rbac --output json)
@@ -127,8 +130,26 @@ then
     echo "Waiting for service principal to propagate..."
     sleep 15
 
-    # Get the virtual network resource ID
-    VNET_ID=$(az network vnet show --resource-group $AKS_RG --name "vnet_$AKS_NAME" --query id -o tsv)
+    # https://docs.microsoft.com/en-us/azure/aks/managed-aad
+
+     az ad group create --display-name "${AKS_NAME}AdminGroup" --mail-nickname "${AKS_NAME}AdminGroup"
+
+     az ad group list --filter "displayname eq '${AKS_NAME}AdminGroup'" -o table
+
+     # get group id to  $GROUP_ID variable
+
+     GROUP_ID=$(az ad group list --display-name "${AKS_NAME}AdminGroup" -o json | grep -i objectid | awk '{print $2}'| tr "," " " | tr "\"" " " )
+     
+     TENANT_ID=$(az account show --query tenantId --output tsv) 
+    
+     # add myself to admin group 
+
+     USER_ID=$(az ad user show --id kormo_gos.pl#EXT#@ITSpec340.onmicrosoft.com --query objectId --output tsv)  
+
+     az ad group member add --group "${AKS_NAME}AdminGroup" --member-id $USER_ID
+     
+     # Get the virtual network resource ID
+     VNET_ID=$(az network vnet show --resource-group $AKS_RG --name "vnet_$AKS_NAME" --query id -o tsv)
 
     # Assign the service principal Contributor permissions to the virtual network resource
     az role assignment create --assignee $SP_ID --scope $VNET_ID --role Contributor
@@ -154,18 +175,19 @@ then
         --vnet-subnet-id $SUBNET_ID \
         --service-principal $SP_ID \
         --client-secret $SP_PASSWORD \
-        --network-policy calico
+        --network-policy calico \
+        --enable-aad --aad-admin-group-object-ids $GROUP_ID --aad-tenant-id $TENANT_ID
 
     # turn on psp
-    az aks update \
-        --resource-group $AKS_RG \
-        --name $AKS_NAME \
-        --enable-pod-security-policy
+    #az aks update \
+    #    --resource-group $AKS_RG \
+    #    --name $AKS_NAME \
+    #    --enable-pod-security-policy
     # turn off psp
-    az aks update \
-        --resource-group $AKS_RG \
-        --name $AKS_NAME \
-        --disable-pod-security-policy
+    #az aks update \
+    #    --resource-group $AKS_RG \
+    #    --name $AKS_NAME \
+    #    --disable-pod-security-policy
 
 
    echo "ACR_NAME: $ACR_NAME"
