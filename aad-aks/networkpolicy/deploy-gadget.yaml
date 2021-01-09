@@ -1,0 +1,128 @@
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gadget
+  namespace: kube-system
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gadget
+subjects:
+- kind: ServiceAccount
+  name: gadget
+  namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: gadget
+  namespace: kube-system
+  labels:
+    k8s-app: gadget
+spec:
+  selector:
+    matchLabels:
+      k8s-app: gadget
+  template:
+    metadata:
+      labels:
+        k8s-app: gadget
+      annotations:
+        inspektor-gadget.kinvolk.io/option-traceloop: "true"
+        inspektor-gadget.kinvolk.io/option-runc-hooks: "auto"
+    spec:
+      serviceAccount: gadget
+      hostPID: true
+      hostNetwork: true
+      containers:
+      - name: gadget
+        image: docker.io/kinvolk/gadget:20210106230152f4285c
+        imagePullPolicy: Always
+        command: [ "/entrypoint.sh" ]
+        lifecycle:
+          preStop:
+            exec:
+              command:
+                - "/cleanup.sh"
+        env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: GADGET_POD_UID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.uid
+          - name: TRACELOOP_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: TRACELOOP_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: TRACELOOP_POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: TRACELOOP_IMAGE
+            value: docker.io/kinvolk/gadget:20210106230152f4285c
+          - name: INSPEKTOR_GADGET_VERSION
+            value: v0.2.1
+          - name: INSPEKTOR_GADGET_OPTION_TRACELOOP
+            value: "true"
+          - name: INSPEKTOR_GADGET_OPTION_TRACELOOP_LOGLEVEL
+            value: "info,json"
+          - name: INSPEKTOR_GADGET_OPTION_RUNC_HOOKS_MODE
+            value: "auto"
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: host
+          mountPath: /host
+        - name: run
+          mountPath: /run
+          mountPropagation: Bidirectional
+        - name: modules
+          mountPath: /lib/modules
+        - name: debugfs
+          mountPath: /sys/kernel/debug
+        - name: cgroup
+          mountPath: /sys/fs/cgroup
+        - name: bpffs
+          mountPath: /sys/fs/bpf
+        - name: localtime
+          mountPath: /etc/localtime
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+      - effect: NoExecute
+        operator: Exists
+      volumes:
+      - name: host
+        hostPath:
+          path: /
+      - name: run
+        hostPath:
+          path: /run
+      - name: cgroup
+        hostPath:
+          path: /sys/fs/cgroup
+      - name: modules
+        hostPath:
+          path: /lib/modules
+      - name: bpffs
+        hostPath:
+          path: /sys/fs/bpf
+      - name: debugfs
+        hostPath:
+          path: /sys/kernel/debug
+      - name: localtime
+        hostPath:
+          path: /etc/localtime
