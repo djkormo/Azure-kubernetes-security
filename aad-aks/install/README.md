@@ -74,4 +74,4 @@ kubectl apply -f https://k8s.io/examples/application/guestbook/frontend-service.
 
 kubectl create ns beta
 
-kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/microservices-demo/ccff406cdcd3e043b432fe99b4038d1b4699c702/release/kubernetes-manifests.yaml -n beta
+kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/microservices-demo/master/release/kubernetes-manifests.yaml -n beta
