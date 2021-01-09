@@ -169,6 +169,7 @@ then
         --node-count $AKS_NODES \
         --generate-ssh-keys \
         --network-plugin azure \
+        --max-pods 110 \
         --service-cidr 10.0.0.0/16 \
         --dns-service-ip 10.0.0.10 \
         --docker-bridge-address 172.17.0.1/16 \
