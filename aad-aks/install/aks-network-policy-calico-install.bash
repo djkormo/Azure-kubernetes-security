@@ -74,13 +74,14 @@ fi
 set -u  # Treat unset variables as an error when substituting
 set -e # Exit immediately if a command exits with a non-zero status.
 
-
-az aks get-versions -l ${AKS_LOCATION}  # --query 'orchestrators[-1].orchestratorVersion' -o tsv
-
-AKS_VERSION=$(az aks get-versions -l ${AKS_LOCATION} --query 'orchestrators[-1].orchestratorVersion' -o tsv)
-
+# global configuration 
 AKS_NODES=2
 AKS_VM_SIZE=Standard_B2s
+
+az aks get-versions -l ${AKS_LOCATION}  # --query 'orchestrators[-2].orchestratorVersion' -o tsv
+
+AKS_VERSION=$(az aks get-versions -l ${AKS_LOCATION} --query 'orchestrators[-2].orchestratorVersion' -o tsv)
+
 
 echo "AKS_RG: $AKS_RG"
 echo "AKS_NAME: $AKS_NAME"
