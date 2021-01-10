@@ -13,14 +13,28 @@ AKSE_INSTALL_DIR:="/usr/local/bundle/bin"}"
 
 to 
 
-AKSE_INSTALL_DIR:="~./bin"
+AKSE_INSTALL_DIR:="$HOME/bin"
 
+cd $HOME/bin/
 
-cd \~./bin/
+chmod 700 $HOME/bin/aks-engine
 
+cd install/
 
-~./bin/aks-engine deploy --dns-prefix contoso-apple \
+$HOME/bin/aks-engine deploy --dns-prefix contoso-apple \
     --resource-group aks-engine-rg \
     --location northeurope \
     --api-model kubernetes-calico-azure.json \
     --auto-suffix
+
+
+
+
+
+Literature:
+
+https://github.com/Azure/aks-engine/blob/master/docs/tutorials/quickstart.md
+
+https://github.com/Azure/aks-engine/blob/master/docs/topics/aad.md
+
+

@@ -10,7 +10,7 @@ PROJECT_NAME="aks-engine"
 if [ -n "$ACC_CLOUD" ]; then
   # Cloud Shell doesn't have sudo and prefers a different directory.
   : "${USE_SUDO:="false"}"
-  : "${AKSE_INSTALL_DIR:="~./bin"}"
+  : "${AKSE_INSTALL_DIR:="$HOME/bin"}"
   mkdir -p $AKSE_INSTALL_DIR
 else
   : "${USE_SUDO:="true"}"
