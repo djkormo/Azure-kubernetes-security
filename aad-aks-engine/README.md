@@ -19,7 +19,7 @@ AKSE_INSTALL_DIR:="~./bin"
 cd \~./bin/
 
 
-aks-engine deploy --dns-prefix contoso-apple \
+~./bin/aks-engine deploy --dns-prefix contoso-apple \
     --resource-group aks-engine-rg \
     --location northeurope \
     --api-model kubernetes-calico-azure.json \

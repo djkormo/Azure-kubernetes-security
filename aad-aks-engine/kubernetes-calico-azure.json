@@ -20,6 +20,7 @@
         "availabilityProfile": "AvailabilitySet"
       }
     ],
+    
     "linuxProfile": {
       "adminUsername": "azureuser",
       "ssh": {
