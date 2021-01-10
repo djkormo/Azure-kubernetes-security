@@ -96,6 +96,3 @@ kubectl "--kubeconfig=$CONFIG_FILE" cluster-info
 kubectl "--kubeconfig=$CONFIG_FILE" top pods
 kubectl "--kubeconfig=$CONFIG_FILE" get services
 kubectl "--kubeconfig=$CONFIG_FILE" describe ingress
-
-
-rm ./${CONFIG_FILE}|| true
