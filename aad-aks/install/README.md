@@ -2,28 +2,40 @@
 Creating AKS cluster with AAD integration
 
 ```
-bash aks-network-policy-calico-install.bash -n aks-security2020 -g aks-rg -l northeurope -o create
+bash aks-network-policy-calico-install.bash -n aks-security2021 -g aks-rg -l northeurope -o create
 ```
+
 
 debug mode
 
-bash -x aks-network-policy-calico-install.bash -n aks-security2020 -g aks-rg -l northeurope -o create
+bash -x aks-network-policy-calico-install.bash -n aks-security2021 -g aks-rg -l northeurope -o create
 
 ```
-bash aks-network-policy-calico-install.bash -n aks-security2020 -g aks-rg -l northeurope -o stop
-```
-
-```
-bash aks-network-policy-calico-install.bash -n aks-security2020 -g aks-rg -l northeurope -o start
+bash aks-network-policy-calico-install.bash -n aks-security2021 -g aks-rg -l northeurope -o stop
 ```
 
 ```
-bash aks-network-policy-calico-install.bash -n aks-security2020 -g aks-rg -l northeurope -o status
+bash aks-network-policy-calico-install.bash -n aks-security2021 -g aks-rg -l northeurope -o start
 ```
 
 ```
-bash aks-network-policy-calico-install.bash -n aks-security2020 -g aks-rg -l northeurope -o delete
+bash aks-network-policy-calico-install.bash -n aks-security2021 -g aks-rg -l northeurope -o status
 ```
+
+```
+bash aks-network-policy-calico-install.bash -n aks-security2021 -g aks-rg -l northeurope -o delete
+```
+
+
+Optionally add myself to admin group 
+AKS_NAME=aks-security2021
+USER_NAME=kormo_gos.pl#EXT#@ITSpec340.onmicrosoft.com
+GROUP_NAME="${AKS_NAME}AdminGroup"
+
+USER_ID=$(az ad user show --id $USER_NAME --query objectId --output tsv)  
+
+az ad group member add --group "${AKS_NAME}AdminGroup" --member-id $USER_ID
+
 
 Download cli for kubernetes
 
@@ -34,10 +46,16 @@ az aks install-cli
 Download kubernetes context file
 
 ```
-az aks get-credentials --name aks-security2020  --resource-group aks-rg 
+az aks get-credentials --name aks-security2021  --resource-group aks-rg 
 ```
 
-Trying to get information on kubernetes nodes
+downloading context file in admin mode
+
+```
+az aks get-credentials --name aks-security2021 --resource-group aks-rg --admin
+```
+
+Trying to get information on kubernetes nodes after completing login to AAD
 
 ```
 kubectl get nodes  

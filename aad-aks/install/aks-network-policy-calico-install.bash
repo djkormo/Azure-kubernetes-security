@@ -16,11 +16,11 @@ me="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 
 display_usage() { 
 	echo "Example of usage:" 
-	echo -e "bash $me -n aks-security2020 -g aks-rg -l northeurope -o create" 
-	echo -e "bash $me -n aks-security2020 -g aks-rg -l northeurope -o stop" 
-	echo -e "bash $me -n aks-security2020 -g aks-rg -l northeurope -o start" 
-	echo -e "bash $me -n aks-security2020 -g aks-rg -l northeurope -o status" 
-	echo -e "bash $me -n aks-security2020 -g aks-rg -l northeurope -o delete" 
+	echo -e "bash $me -n aks-security2021 -g aks-rg -l northeurope -o create" 
+	echo -e "bash $me -n aks-security2021 -g aks-rg -l northeurope -o stop" 
+	echo -e "bash $me -n aks-security2021 -g aks-rg -l northeurope -o start" 
+	echo -e "bash $me -n aks-security2021 -g aks-rg -l northeurope -o status" 
+	echo -e "bash $me -n aks-security2021 -g aks-rg -l northeurope -o delete" 
 	} 
 
 while getopts n:g:o:l: option
@@ -173,17 +173,6 @@ then
         --network-policy calico \
         --enable-aad --aad-admin-group-object-ids $GROUP_ID --aad-tenant-id $TENANT_ID
 
-    # turn on psp
-    #az aks update \
-    #    --resource-group $AKS_RG \
-    #    --name $AKS_NAME \
-    #    --enable-pod-security-policy
-    # turn off psp
-    #az aks update \
-    #    --resource-group $AKS_RG \
-    #    --name $AKS_NAME \
-    #    --disable-pod-security-policy
-
 
    echo "ACR_NAME: $ACR_NAME"
    # create Azure Container Registry 
@@ -214,12 +203,6 @@ then
     az network public-ip list --resource-group $RG_VM_POOL --query "[?name=='myIngressPublicIP'].[dnsSettings.fqdn]" -o tsv
 
 
-     # optionally add myself to admin group 
-
-     USER_ID=$(az ad user show --id kormo_gos.pl#EXT#@ITSpec340.onmicrosoft.com --query objectId --output tsv)  
-
-     az ad group member add --group "${AKS_NAME}AdminGroup" --member-id $USER_ID
-
 fi # of create
 
 
@@ -234,7 +217,7 @@ echo "starting VMs...";
   
   az vm list -d -g $RG_VM_POOL  | grep powerState 
   az vm start --ids $(az vm list -g $RG_VM_POOL --query "[].id" -o tsv) --no-wait
-fi
+fi # of start
  
 if [ "$AKS_OPERATION" = "stop" ] ;
 then
@@ -247,7 +230,7 @@ echo "stopping VMs...";
   az vm list -d -g $RG_VM_POOL  | grep powerState
 
   az vm deallocate --ids $(az vm list -g $RG_VM_POOL --query "[].id" -o tsv) --no-wait
-fi
+fi # of stop
 
 
 if [ "$AKS_OPERATION" = "status" ] ;
@@ -261,7 +244,7 @@ then
   
   az vm list -d -g $RG_VM_POOL  | grep powerState 
   
-fi 
+fi  # of status
 
 
 if [ "$AKS_OPERATION" = "delete" ] ;
