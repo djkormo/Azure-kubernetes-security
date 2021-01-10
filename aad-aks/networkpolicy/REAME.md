@@ -18,7 +18,13 @@ kubectl gadget network-policy monitor \
 
 ```
 kubectl gadget network-policy report \
-        --input ./beta-networktrace.log > beta-network-policy.yaml 
+        --input ./beta-networktrace.log > beta-generated-network-policy.yaml 
 ```
 
-k kubectl -f  beta-network-policy.yaml           
+k kubectl -f  beta-generated-network-policy.yaml           
+
+
+
+Literature:
+https://kinvolk.io/blog/2020/03/writing-kubernetes-network-policies-with-inspektor-gadgets-network-policy-advisor/
+

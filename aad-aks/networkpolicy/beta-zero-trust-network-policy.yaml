@@ -1,0 +1,44 @@
+---
+#Deny all ingress traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: beta
+spec:
+  podSelector:
+    matchLabels: {}
+  policyTypes:
+  - Ingress
+---
+#Deny all egress traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-egress
+  namespace: beta
+spec:
+  podSelector:
+      matchLabels: {}
+  policyTypes:
+  - Egress
+---
+# Allow DNS egress traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-access
+  namespace: beta
+spec:
+  podSelector:
+    matchLabels: {}
+  policyTypes:
+  - Egress
+  egress:
+    - to:
+      - namespaceSelector:
+          matchLabels:
+           name: kube-system
+      ports:
+      - protocol: UDP
+        port: 53
