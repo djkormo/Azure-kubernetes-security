@@ -1,0 +1,4 @@
+*.yaml
+*.crt
+*.key
+*.ssh
