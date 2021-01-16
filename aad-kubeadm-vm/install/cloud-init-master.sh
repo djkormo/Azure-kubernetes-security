@@ -69,6 +69,9 @@ export KUBECONFIG='/etc/kubernetes/admin.conf'
 #kubectl apply -f https://docs.projectcalico.org/v2.6/getting-started/kubernetes/installation/hosted/kubeadm/1.6/calico.yaml
 kubectl apply -f https://docs.projectcalico.org/v3.11/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml >> /var/log/install
 
+# install metrics server
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
 # --------------------------------------------
 echo 'configuration complete' >> /var/log/install
 echo 'configuration complete' > /tmp/hello.txt

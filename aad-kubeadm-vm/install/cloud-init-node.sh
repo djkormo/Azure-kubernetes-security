@@ -26,8 +26,8 @@ systemctl enable docker.service
 # kubeadm - agent nodes
 # ---------------------
 # initialize agent node
+# Check proper IP of master node -> 10.240.0.4:6443
 kubeadm join --discovery-token-unsafe-skip-ca-verification --token '8f07c4.2fa8f9e48b6d4036' 10.240.0.4:6443 >> /var/log/install
-
 
 # --------------------------------------------
 echo 'configuration complete' > /tmp/hello.txt
