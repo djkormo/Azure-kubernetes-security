@@ -12,7 +12,9 @@ export KUBECONFIG='/etc/kubernetes/admin.conf'
 kubectl get nodes -o wide
 kubectl get pod -n kube-system
 kubectl top nodes
+kubectl get events -n kube-system --sort-by=.metadata.creationTimestamp
 ```
+
 <pre>
 Enable succeeded: 
 [stdout]
@@ -47,7 +49,11 @@ https://aaronmsft.com/posts/azure-vmss-kubernetes-kubeadm/
 
 https://github.com/tmarjomaa/kubernetesplayground
 
-
 https://github.com/ankursoni/kubernetes-the-hard-way-on-azure
 
 
+https://itnext.io/cks-exam-series-1-create-cluster-security-best-practices-50e35aaa67ae
+
+https://github.com/pksheldon4/cks-cluster
+
+https://itnext.io/kubernetes-explained-deep-enough-1ea2c6821501
