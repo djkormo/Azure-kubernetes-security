@@ -11,6 +11,7 @@ Tests on master node
 export KUBECONFIG='/etc/kubernetes/admin.conf'
 kubectl get nodes -o wide
 kubectl get pod -n kube-system
+kubectl top nodes
 ```
 <pre>
 Enable succeeded: 
@@ -45,4 +46,8 @@ https://samcogan.com/taking-the-cka-exam-as-an-azure-user/
 https://aaronmsft.com/posts/azure-vmss-kubernetes-kubeadm/
 
 https://github.com/tmarjomaa/kubernetesplayground
+
+
+https://github.com/ankursoni/kubernetes-the-hard-way-on-azure
+
 
