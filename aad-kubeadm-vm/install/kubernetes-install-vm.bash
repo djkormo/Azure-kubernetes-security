@@ -82,7 +82,7 @@ K8S_ADMINUSER=azureuser
 if [ "$K8S_OPERATION" = "create" ] ;
 then
 
-  ssh-keygen -t rsa -b 4096
+  ssh-keygen -t rsa -b 4096 -f $HOME/.ssh/k8s_rsa -C "key for k8s on Azure"
 
     # Create a resource group
   az group create --name "${K8S_RG}" --location ${K8S_LOCATION}
@@ -93,7 +93,7 @@ then
         --name "vnet_${K8S_NAME}" \
         --address-prefixes 10.0.0.0/8 \
         --subnet-name "subnet_${K8S_NAME}" \
-        --subnet-prefix 10.240.0.0/16
+        --subnet-prefix 10.240.0.0/16 # master node should have 10.240.0.4 IP
 
 K8S_SUBNETID=$(az network vnet subnet show --resource-group ${K8S_RG} \
   --name subnet_${K8S_NAME} --vnet-name vnet_${K8S_NAME} --query="id" -o tsv)
@@ -113,18 +113,18 @@ echo "K8S_SUBNETID: $K8S_SUBNETID"
    --admin-username ${K8S_ADMINUSER} --size ${K8S_VM_SIZE} --image ${K8S_VM_IMAGE} \
    --subnet "subnet_${K8S_NAME}" --vnet-name "vnet_${K8S_NAME}" \
    --availability-set $K8S_AVAILABILITYSET \
-   --public-ip-address "" --nsg "" --ssh-key-values ${HOME}/.ssh/id_rsa.pub \
+   --public-ip-address "" --nsg "" --ssh-key-values ${HOME}/.ssh/k8s_rsa.pub \
    --custom-data ./cloud-init-master.sh #--no-wait
 
   # worker nodes
-for i in {1..$K8S_NODES} 
-do
+#for i in { 1..${K8S_NODES } 
+for ((i = 1 ; i <= $K8S_NODES ; i++)); do
    az vm create --name "${K8S_NAME}"-worker"${i}"  --resource-group ${K8S_RG} --location ${K8S_LOCATION} \
      --admin-username ${K8S_ADMINUSER} --size ${K8S_VM_SIZE} --image ${K8S_VM_IMAGE} \
      --subnet "subnet_${K8S_NAME}" --vnet-name "vnet_${K8S_NAME}" \
      --availability-set $K8S_AVAILABILITYSET \
-     --public-ip-address "" --nsg "" --ssh-key-values ${HOME}/.ssh/id_rsa.pub \
-     --custom-data ./cloud-init-node.sh #--no-wait
+     --public-ip-address "" --nsg "" --ssh-key-values ${HOME}/.ssh/k8s_rsa.pub \
+     --custom-data ./cloud-init-node.sh --no-wait
 done
 
 
@@ -171,5 +171,5 @@ if [ "$K8S_OPERATION" = "delete" ] ;
 then
   echo "Deleting $K8S_RG: "
   az group delete --name $K8S_RG
-fi 
+fi  # of delete
 

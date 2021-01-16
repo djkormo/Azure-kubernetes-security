@@ -8,7 +8,7 @@
 apt-get update && apt-get upgrade -y
 
 # install docker
-apt-get install -y docker.io
+apt-get install -y docker.io >> /var/log/install
 
 # install kubeadm
 apt-get install -y apt-transport-https
@@ -18,13 +18,15 @@ deb http://apt.kubernetes.io/ kubernetes-xenial main
 EOF
 
 apt-get update
-apt-get install -y kubelet kubeadm kubectl
+#apt-get install -y kubelet kubeadm kubectl
+apt-get install kubeadm=1.19.0-00 kubectl=1.19.0-00 kubelet=1.19.0-00 -y >> /var/log/install
 
+systemctl enable docker.service
 
 # kubeadm - agent nodes
 # ---------------------
 # initialize agent node
-kubeadm join --discovery-token-unsafe-skip-ca-verification --token '8f07c4.2fa8f9e48b6d4036' 10.0.0.4:6443
+kubeadm join --discovery-token-unsafe-skip-ca-verification --token '8f07c4.2fa8f9e48b6d4036' 10.240.0.4:6443 >> /var/log/install
 
 
 # --------------------------------------------
