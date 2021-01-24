@@ -57,3 +57,8 @@ https://itnext.io/cks-exam-series-1-create-cluster-security-best-practices-50e35
 https://github.com/pksheldon4/cks-cluster
 
 https://itnext.io/kubernetes-explained-deep-enough-1ea2c6821501
+
+
+https://github.com/salaxander/kubernetes-the-hard-way/blob/master/docs/03-compute-resources.md
+
+

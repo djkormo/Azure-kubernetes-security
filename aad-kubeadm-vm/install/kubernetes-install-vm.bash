@@ -184,50 +184,45 @@ echo "K8S_SUBNETID: $K8S_SUBNETID"
     # VM
   az vm create --name "${K8S_NAME}"-master1 --resource-group ${K8S_RG}  --location ${K8S_LOCATION} \
    --admin-username ${K8S_ADMINUSER} --size ${K8S_VM_SIZE} --image ${K8S_VM_IMAGE} \
-   --subnet "subnet_${K8S_NAME}" --vnet-name "vnet_${K8S_NAME}" \
    --availability-set $K8S_AVAILABILITYSET \
-   --public-ip-address master-1-ip  \
    --nics master-1-nic \
-   --network-security-group ${K8S_NAME} \
    --ssh-key-values ${HOME}/.ssh/k8s_rsa.pub \
    --custom-data ./cloud-init-master.sh #--no-wait
 
   # worker nodes
 
 # public IPs
-for ((i = 1 ; i <= $K8S_NODES ; i++)); do
-    az network public-ip create \
-    --name worker-${i}-ip \
-    --resource-group ${K8S_RG} \
-    --allocation-method Static
+  for ((i = 1 ; i <= $K8S_NODES ; i++)); do
+      az network public-ip create \
+      --name worker-${i}-ip \
+      --resource-group ${K8S_RG} \
+      --allocation-method Static
+    done
+
+  # nics
+  for ((i = 1 ; i <= $K8S_NODES ; i++)); do
+    az network nic create \
+      --resource-group ${K8S_RG} \
+      --name worker-${i}-nic \
+      --vnet-name "vnet_${K8S_NAME}" \
+      --subnet "subnet_${K8S_NAME}" \
+      --public-ip-address worker-${i}-ip \
+      --private-ip-address 10.240.0.1${i} \
+      --lb-name ${K8S_NAME}-lb \
+      --lb-address-pools ${K8S_NAME}-lb-pool\
+      --ip-forwarding true
   done
-# nics
-for ((i = 1 ; i <= $K8S_NODES ; i++)); do
-  az network nic create \
-    --resource-group ${K8S_RG} \
-    --name worker-${i}-nic \
-    --vnet-name "vnet_${K8S_NAME}" \
-    --subnet "subnet_${K8S_NAME}" \
-    --network-security-group ${K8S_NAME} \
-    --public-ip-address worker-${i}-ip \
-    --private-ip-address 10.240.0.1${i} \
-    --lb-name ${K8S_NAME}-lb \
-    --lb-address-pools ${K8S_NAME}-lb-pool\
-    --ip-forwarding true
-done
 
+  # VMs
 
-for ((i = 1 ; i <= $K8S_NODES ; i++)); do
-   az vm create --name "${K8S_NAME}"-worker"${i}"  --resource-group ${K8S_RG} --location ${K8S_LOCATION} \
-     --admin-username ${K8S_ADMINUSER} --size ${K8S_VM_SIZE} --image ${K8S_VM_IMAGE} \
-     --subnet "subnet_${K8S_NAME}" --vnet-name "vnet_${K8S_NAME}" \
-     --availability-set $K8S_AVAILABILITYSET \
-     --public-ip-address worker-${i}-ip \
-     --nics worker-${i}-nic
-     --network-security-group ${K8S_NAME} \
-     --ssh-key-values ${HOME}/.ssh/k8s_rsa.pub \
-     --custom-data ./cloud-init-node.sh --no-wait
-done
+  for ((i = 1 ; i <= $K8S_NODES ; i++)); do
+    az vm create --name "${K8S_NAME}"-worker"${i}"  --resource-group ${K8S_RG} --location ${K8S_LOCATION} \
+      --admin-username ${K8S_ADMINUSER} --size ${K8S_VM_SIZE} --image ${K8S_VM_IMAGE} \
+      --availability-set $K8S_AVAILABILITYSET \
+      --nics worker-${i}-nic \
+      --ssh-key-values ${HOME}/.ssh/k8s_rsa.pub \
+      --custom-data ./cloud-init-node.sh --no-wait
+  done
 
 
 # of create
