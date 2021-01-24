@@ -41,6 +41,57 @@ kube-proxy-vhz4l                                   1/1     Running   0          
 kube-scheduler-k8s-security2021-master1            1/1     Running   2          3m54s
 </pre>
 
+
+Generate config
+
+KUBERNETES_PUBLIC_ADDRESS=$(az network public-ip show -g k8s-rg -n k8s-security2021-public-ip --query ipAddress --output tsv)
+
+example
+
+KUBERNETES_PUBLIC_ADDRESS=40.127.160.31
+
+ssh to master node
+```
+ssh -i <private key>  azureuser@master-node-ip
+```
+
+```
+mkdir -p $HOME/.kube
+# Copy conf file to .kube directory for current user
+sudo cp /etc/kubernetes/admin.conf $HOME/.kube/config
+# Change ownership of file to current user and group
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+get ca, client cert and client key
+
+```
+
+kubectl config view --minify --raw --output 'jsonpath={..cluster.certificate-authority-data}' |base64 -d  > ca.crt
+
+kubectl config view --minify --raw --output 'jsonpath={..user.client-certificate-data}' |base64 -d  > ./admin.pem
+
+kubectl config view --minify --raw --output 'jsonpath={..user.client-key-data}' |base64 -d  > admin-key.pem
+
+```
+# KUBERNETES_PUBLIC_ADDRESS=40.127.160.31
+
+kubectl config set-cluster k8s-security2021 \
+  --certificate-authority=./ca.crt \
+  --embed-certs=true \
+  --server=https://${KUBERNETES_PUBLIC_ADDRESS}:6443
+
+kubectl config set-credentials admin \
+  --client-certificate=./admin.pem \
+  --client-key=./admin-key.pem
+
+kubectl config set-context k8s-security2021 \
+  --cluster=k8s-security2021 \
+  --user=admin
+
+kubectl config use-context k8s-security2021
+
+
 https://www.linkedin.com/pulse/deploying-self-managed-kubernetes-cluster-azure-using-atul-sharma/?articleId=6655123344125460480
 
 https://samcogan.com/taking-the-cka-exam-as-an-azure-user/

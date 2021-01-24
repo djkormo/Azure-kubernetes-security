@@ -39,7 +39,7 @@ then
 	  display_usage
 	  exit 1
 else
-      echo "\$K8S_OPERATION is NOT empty"
+      echo "\$K8S_OPERATION :$K8S_OPERATION"
 fi
 
 if [ -z "$K8S_NAME" ]
@@ -48,7 +48,7 @@ then
 	  display_usage
 	  exit 1
 else
-      echo "\$AKS_NAME is NOT empty"
+      echo "\$AKS_NAME: $K8S_NAME"
 fi
 
 if [ -z "$K8S_RG" ]
@@ -57,7 +57,7 @@ then
 	  display_usage
 	  exit 1
 else
-      echo "\$K8S_RG is NOT empty"
+      echo "\$K8S_RG: $K8S_RG"
 fi
 
 if [ -z "$K8S_LOCATION" ]
@@ -66,7 +66,7 @@ then
 	  display_usage
 	  exit 1
 else
-      echo "\$K8S_LOCATION is NOT empty"
+      echo "\$K8S_LOCATION: $K8S_LOCATION"
 fi
 
 set -u  # Treat unset variables as an error when substituting
@@ -146,7 +146,7 @@ echo "K8S_SUBNETID: $K8S_SUBNETID"
       --lb-name ${K8S_NAME}-lb \
       --resource-group  ${K8S_RG} \
       --name ${K8S_NAME}-lb-probe \
-      --port 80 \
+      --port 6443 \
       --protocol tcp
 
     az network lb rule create \
@@ -248,8 +248,8 @@ echo "stopping VMs...";
 echo "K8S_RG: $K8S_RG"
   # get the resource group for VMs
   az vm list -d -g $K8S_RG  | grep powerState
-
-  az vm deallocate --ids $(az vm list -g $K8S_RG --query "[].id" -o tsv) --no-wait
+  az vm list -g $K8S_RG --query "[].id" -o tsv
+  az vm deallocate --ids "$(az vm list -g $K8S_RG --query "[].id" -o tsv)" --no-wait
 fi # of stop
 
 
