@@ -1,6 +1,12 @@
 #!/bin/sh
 # -------
 
+set -u  # Treat unset variables as an error when substituting
+set -e # Exit immediately if a command exits with a non-zero status.
+
+# public IP of master node 
+# TODO PIP=$1
+
 # install docker & kubeadm - ubuntu
 # ---------------------------------
 
@@ -55,7 +61,10 @@ EOF
 # kubeadm - master node
 # ---------------------
 # initialize master
-kubeadm init --pod-network-cidr=192.168.0.0/16  --token '8f07c4.2fa8f9e48b6d4036' >> /var/log/install
+kubeadm init --pod-network-cidr=192.168.0.0/16  --token '8f07c4.2fa8f9e48b6d4036'  >> /var/log/install
+
+# TODO --apiserver-cert-extra-sans $PIP  
+
 
 # confirm output and copy "kubeadm join" command.
 
