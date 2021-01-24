@@ -107,23 +107,125 @@ echo "K8S_SUBNETID: $K8S_SUBNETID"
     --platform-fault-domain-count 2 \
     --platform-update-domain-count 2
 
+   # Security Group  
+
+   az network nsg create --resource-group ${K8S_RG} --name ${K8S_NAME}
+
+   # Create a firewall rule that allows external SSH, and HTTPS:
+
+    az network nsg rule create \
+      --resource-group ${K8S_RG} \
+      --nsg-name ${K8S_NAME}\
+      --name K8s \
+      --access Allow \
+      --protocol Tcp \
+      --direction Inbound \
+      --priority 100 \
+      --source-address-prefix "*" \
+      --source-port-range "*" \
+      --destination-port-ranges 22 6443
+
+    az network nsg rule show --resource-group ${K8S_RG} --name K8s --nsg-name ${K8S_NAME}
+  
+    az network public-ip create \
+      --name ${K8S_NAME}-public-ip \
+      --resource-group ${K8S_RG} \
+      --allocation-method Static
+
+    az network public-ip show --resource-group ${K8S_RG} --name ${K8S_NAME}-public-ip
+
+    # Provision a Network Load Balancer
+
+    az network lb create \
+      --name ${K8S_NAME}-lb \
+      --resource-group  ${K8S_RG} \
+      --backend-pool-name ${K8S_NAME}-lb-pool \
+      --public-ip-address ${K8S_NAME}-public-ip
+
+    az network lb probe create \
+      --lb-name ${K8S_NAME}-lb \
+      --resource-group  ${K8S_RG} \
+      --name ${K8S_NAME}-lb-probe \
+      --port 80 \
+      --protocol tcp
+
+    az network lb rule create \
+      --resource-group  ${K8S_RG} \
+      --lb-name ${K8S_NAME}-lb \
+      --name ${K8S_NAME}-lb-rule \
+      --protocol tcp \
+      --frontend-port 6443 \
+      --backend-port 6443 \
+      --backend-pool-name ${K8S_NAME}-lb-pool \
+      --probe-name ${K8S_NAME}-lb-probe  
+
+
   # master node
 
+    # public IP
+    az network public-ip create \
+    --name master-1-ip \
+    --resource-group ${K8S_RG} \
+    --allocation-method Static
+
+    # nic 
+    az network nic create \
+      --resource-group ${K8S_RG} \
+      --name master-1-nic \
+      --vnet-name "vnet_${K8S_NAME}" \
+      --subnet "subnet_${K8S_NAME}" \
+      --network-security-group ${K8S_NAME} \
+      --public-ip-address master-1-ip \
+      --private-ip-address 10.240.0.4 \
+      --lb-name ${K8S_NAME}-lb \
+      --lb-address-pools ${K8S_NAME}-lb-pool\
+      --ip-forwarding true
+
+    # VM
   az vm create --name "${K8S_NAME}"-master1 --resource-group ${K8S_RG}  --location ${K8S_LOCATION} \
    --admin-username ${K8S_ADMINUSER} --size ${K8S_VM_SIZE} --image ${K8S_VM_IMAGE} \
    --subnet "subnet_${K8S_NAME}" --vnet-name "vnet_${K8S_NAME}" \
    --availability-set $K8S_AVAILABILITYSET \
-   --public-ip-address "" --nsg "" --ssh-key-values ${HOME}/.ssh/k8s_rsa.pub \
+   --public-ip-address master-1-ip  \
+   --nics master-1-nic \
+   --network-security-group ${K8S_NAME} \
+   --ssh-key-values ${HOME}/.ssh/k8s_rsa.pub \
    --custom-data ./cloud-init-master.sh #--no-wait
 
   # worker nodes
-#for i in { 1..${K8S_NODES } 
+
+# public IPs
+for ((i = 1 ; i <= $K8S_NODES ; i++)); do
+    az network public-ip create \
+    --name worker-${i}-ip \
+    --resource-group ${K8S_RG} \
+    --allocation-method Static
+  done
+# nics
+for ((i = 1 ; i <= $K8S_NODES ; i++)); do
+  az network nic create \
+    --resource-group ${K8S_RG} \
+    --name worker-${i}-nic \
+    --vnet-name "vnet_${K8S_NAME}" \
+    --subnet "subnet_${K8S_NAME}" \
+    --network-security-group ${K8S_NAME} \
+    --public-ip-address worker-${i}-ip \
+    --private-ip-address 10.240.0.1${i} \
+    --lb-name ${K8S_NAME}-lb \
+    --lb-address-pools ${K8S_NAME}-lb-pool\
+    --ip-forwarding true
+done
+
+
 for ((i = 1 ; i <= $K8S_NODES ; i++)); do
    az vm create --name "${K8S_NAME}"-worker"${i}"  --resource-group ${K8S_RG} --location ${K8S_LOCATION} \
      --admin-username ${K8S_ADMINUSER} --size ${K8S_VM_SIZE} --image ${K8S_VM_IMAGE} \
      --subnet "subnet_${K8S_NAME}" --vnet-name "vnet_${K8S_NAME}" \
      --availability-set $K8S_AVAILABILITYSET \
-     --public-ip-address "" --nsg "" --ssh-key-values ${HOME}/.ssh/k8s_rsa.pub \
+     --public-ip-address worker-${i}-ip \
+     --nics worker-${i}-nic
+     --network-security-group ${K8S_NAME} \
+     --ssh-key-values ${HOME}/.ssh/k8s_rsa.pub \
      --custom-data ./cloud-init-node.sh --no-wait
 done
 
