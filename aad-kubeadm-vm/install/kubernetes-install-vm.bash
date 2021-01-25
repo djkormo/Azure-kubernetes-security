@@ -159,6 +159,9 @@ echo "K8S_SUBNETID: $K8S_SUBNETID"
       --backend-pool-name ${K8S_NAME}-lb-pool \
       --probe-name ${K8S_NAME}-lb-probe  
 
+    az network lb inbound-nat-rule create \
+      -g ${K8S_RG} --lb-name ${K8S_NAME}-lb -n ${K8S_NAME}-lb-nat-rule-ssh \
+      --protocol Tcp --frontend-port 30 --backend-port 22
 
   # master node
 
