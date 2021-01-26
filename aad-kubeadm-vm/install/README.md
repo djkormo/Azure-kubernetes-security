@@ -52,7 +52,7 @@ KUBERNETES_PUBLIC_ADDRESS=40.127.160.31
 
 ssh to master node
 ```
-ssh -i <private key>  azureuser@master-node-ip
+ssh -i <private key>  azureuser@${KUBERNETES_PUBLIC_ADDRESS} -p 30 
 ```
 
 ```
@@ -74,7 +74,7 @@ kubectl config view --minify --raw --output 'jsonpath={..user.client-certificate
 kubectl config view --minify --raw --output 'jsonpath={..user.client-key-data}' |base64 -d  > admin-key.pem
 
 ```
-# KUBERNETES_PUBLIC_ADDRESS=40.127.160.31
+# KUBERNETES_PUBLIC_ADDRESS=168.61.90.61
 
 kubectl config set-cluster k8s-security2021 \
   --certificate-authority=./ca.crt \
@@ -91,6 +91,56 @@ kubectl config set-context k8s-security2021 \
 
 kubectl config use-context k8s-security2021
 
+How to add SAN to k8s certificate
+
+```
+kubectl -n kube-system get configmap kubeadm-config -o jsonpath='{.data.ClusterConfiguration}' > kubeadm.yaml
+```
+
+add missing SAN for your Public LB IP
+
+```yaml
+ :
+  certSANs:
+  - "172.29.50.162" # Public IP 
+```
+move old certificates and keys
+```
+mv /etc/kubernetes/pki/apiserver.{crt,key} ~
+```
+
+Update certs
+```
+kubeadm init phase certs apiserver --config kubeadm.yaml
+```
+
+Check SAN in cert
+
+```
+openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text
+```
+
+
+restart api  server TODO
+```
+Run docker ps | grep kube-apiserver | grep -v pause 
+```
+to get the container ID for the container running the Kubernetes API server. (The container ID will be the very first field in the output.)
+Run 
+```
+docker kill <containerID> 
+```
+to kill the container.
+
+
+upload new configuration to kubelet  
+```
+kubeadm init phase upload-config kubelet --config kubeadm.yaml
+```
+check configmap
+```
+kubectl -n kube-system get configmap kubeadm-config -o yaml
+```
 
 https://www.linkedin.com/pulse/deploying-self-managed-kubernetes-cluster-azure-using-atul-sharma/?articleId=6655123344125460480
 
@@ -112,4 +162,7 @@ https://itnext.io/kubernetes-explained-deep-enough-1ea2c6821501
 
 https://github.com/salaxander/kubernetes-the-hard-way/blob/master/docs/03-compute-resources.md
 
+https://medium.com/better-programming/k8s-tips-give-access-to-your-clusterwith-a-client-certificate-dfb3b71a76fe
 
+
+https://blog.scottlowe.org/2019/07/30/adding-a-name-to-kubernetes-api-server-certificate/

@@ -225,7 +225,7 @@ echo "K8S_SUBNETID: $K8S_SUBNETID"
       --nics worker-${i}-nic \
       --ssh-key-values ${HOME}/.ssh/k8s_rsa.pub \
       --custom-data ./cloud-init-node.sh \
-      --data-disk-sizes-gb 200 --no-wait
+      --data-disk-sizes-gb 20 --no-wait
   done
 
 

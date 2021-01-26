@@ -81,6 +81,9 @@ kubectl apply -f https://docs.projectcalico.org/v3.11/getting-started/kubernetes
 # install metrics server
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
+# save kubeaqdm config
+kubectl -n kube-system get configmap kubeadm-config -o jsonpath='{.data.ClusterConfiguration}' > ${HOME}/kubeadm.yaml
+
 # --------------------------------------------
 echo 'configuration complete' >> /var/log/install
 echo 'configuration complete' > /tmp/hello.txt
