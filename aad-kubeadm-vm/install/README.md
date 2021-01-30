@@ -55,7 +55,8 @@ ssh to master node
 ssh -i <private key>  azureuser@${KUBERNETES_PUBLIC_ADDRESS} -p 30 
 ```
 
-```
+```bash
+#  create missing directory
 mkdir -p $HOME/.kube
 # Copy conf file to .kube directory for current user
 sudo cp /etc/kubernetes/admin.conf $HOME/.kube/config
@@ -67,6 +68,8 @@ get ca, client cert and client key
 
 ```
 
+
+
 kubectl config view --minify --raw --output 'jsonpath={..cluster.certificate-authority-data}' |base64 -d  > ca.crt
 
 kubectl config view --minify --raw --output 'jsonpath={..user.client-certificate-data}' |base64 -d  > ./admin.pem
@@ -74,6 +77,58 @@ kubectl config view --minify --raw --output 'jsonpath={..user.client-certificate
 kubectl config view --minify --raw --output 'jsonpath={..user.client-key-data}' |base64 -d  > admin-key.pem
 
 ```
+
+add missing SAN for your Public LB IP
+
+TODO - gebnerate automated script
+
+save actual config
+```
+kubectl -n kube-system get configmap kubeadm-config -o jsonpath='{.data.ClusterConfiguration}' > ${HOME}/kubeadm.yaml
+```
+```yaml
+ :
+  certSANs:
+  - "172.29.50.162" # Public IP 
+```
+
+move old certificates and keys
+```
+mv /etc/kubernetes/pki/apiserver.{crt,key} ~
+```
+
+Update certs
+```
+kubeadm init phase certs apiserver --config kubeadm.yaml
+```
+
+Check SAN in cert
+
+```
+openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text
+```
+
+restart api  server TODO
+```
+Run docker ps | grep kube-apiserver | grep -v pause 
+```
+to get the container ID for the container running the Kubernetes API server. (The container ID will be the very first field in the output.)
+Run 
+```
+docker kill <containerID> 
+```
+to kill the container.
+
+upload new configuration to kubelet  
+```
+kubeadm init phase upload-config kubelet --config kubeadm.yaml
+```
+check configmap
+```
+kubectl -n kube-system get configmap kubeadm-config -o yaml
+```
+
+
 # KUBERNETES_PUBLIC_ADDRESS=168.61.90.61
 
 kubectl config set-cluster k8s-security2021 \
@@ -97,50 +152,7 @@ How to add SAN to k8s certificate
 kubectl -n kube-system get configmap kubeadm-config -o jsonpath='{.data.ClusterConfiguration}' > kubeadm.yaml
 ```
 
-add missing SAN for your Public LB IP
 
-```yaml
- :
-  certSANs:
-  - "172.29.50.162" # Public IP 
-```
-move old certificates and keys
-```
-mv /etc/kubernetes/pki/apiserver.{crt,key} ~
-```
-
-Update certs
-```
-kubeadm init phase certs apiserver --config kubeadm.yaml
-```
-
-Check SAN in cert
-
-```
-openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text
-```
-
-
-restart api  server TODO
-```
-Run docker ps | grep kube-apiserver | grep -v pause 
-```
-to get the container ID for the container running the Kubernetes API server. (The container ID will be the very first field in the output.)
-Run 
-```
-docker kill <containerID> 
-```
-to kill the container.
-
-
-upload new configuration to kubelet  
-```
-kubeadm init phase upload-config kubelet --config kubeadm.yaml
-```
-check configmap
-```
-kubectl -n kube-system get configmap kubeadm-config -o yaml
-```
 
 https://www.linkedin.com/pulse/deploying-self-managed-kubernetes-cluster-azure-using-atul-sharma/?articleId=6655123344125460480
 
@@ -166,3 +178,5 @@ https://medium.com/better-programming/k8s-tips-give-access-to-your-clusterwith-a
 
 
 https://blog.scottlowe.org/2019/07/30/adding-a-name-to-kubernetes-api-server-certificate/
+
+https://stackoverflow.com/questions/46360361/invalid-x509-certificate-for-kubernetes-master
