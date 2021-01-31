@@ -9,6 +9,7 @@ Tests on master node
 
 ```bash
 export KUBECONFIG='/etc/kubernetes/admin.conf'
+kubectl cluster-info  
 kubectl get nodes -o wide
 kubectl get pod -n kube-system
 kubectl top nodes
@@ -53,6 +54,7 @@ KUBERNETES_PUBLIC_ADDRESS=40.127.160.31
 ssh to master node
 ```
 ssh -i <private key>  azureuser@${KUBERNETES_PUBLIC_ADDRESS} -p 30 
+ssh -i $HOME/.ssh/k8s_rsa  azureuser@${KUBERNETES_PUBLIC_ADDRESS} -p 30
 ```
 
 ```bash

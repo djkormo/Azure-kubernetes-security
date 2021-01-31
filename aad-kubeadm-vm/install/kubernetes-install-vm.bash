@@ -74,7 +74,7 @@ set -e # Exit immediately if a command exits with a non-zero status.
 
 
 # global configuration 
-K8S_NODES=3 # worker nodes and ONE master node
+K8S_NODES=1 # worker nodes and ONE master node
 K8S_VM_SIZE=Standard_B2s
 K8S_VM_IMAGE=UbuntuLTS
 K8S_ADMINUSER=azureuser
