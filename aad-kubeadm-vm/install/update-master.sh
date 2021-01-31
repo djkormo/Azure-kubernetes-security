@@ -5,12 +5,11 @@ set -u  # Treat unset variables as an error when substituting
 set -e # Exit immediately if a command exits with a non-zero status.
 
 PIP = %1
-
 LIP=10.240.0.4
+
 sudo mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/
-
 
 export KUBECONFIG='/etc/kubernetes/admin.conf'
 export KUBECONFIG=$HOME/.kube/config
@@ -19,6 +18,7 @@ kubectl config view --minify --raw --output 'jsonpath={..cluster.certificate-aut
 kubectl config view --minify --raw --output 'jsonpath={..user.client-certificate-data}' |base64 -d  > ./admin.pem
 kubectl config view --minify --raw --output 'jsonpath={..user.client-key-data}' |base64 -d  > admin-key.pem
 
+# backup our configuration
 kubectl -n kube-system get configmap kubeadm-config -o jsonpath='{.data.ClusterConfiguration}' > ${HOME}/kubeadm.yaml
 
 # remove current certs
