@@ -4,7 +4,10 @@
 set -u  # Treat unset variables as an error when substituting
 set -e # Exit immediately if a command exits with a non-zero status.
 
-PIP = %1
+
+git clone https://github.com/djkormo/Azure-kubernetes-security.git
+
+PIP = $1
 LIP=10.240.0.4
 
 sudo mkdir -p $HOME/.kube

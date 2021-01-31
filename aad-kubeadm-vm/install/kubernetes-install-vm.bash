@@ -163,6 +163,8 @@ echo "K8S_SUBNETID: $K8S_SUBNETID"
       -g ${K8S_RG} --lb-name ${K8S_NAME}-lb -n ${K8S_NAME}-lb-nat-rule-ssh \
       --protocol Tcp --frontend-port 30 --backend-port 22
 
+  # TODO adding master VM as tagret machine  
+  
   # master node
 
     # public IP
