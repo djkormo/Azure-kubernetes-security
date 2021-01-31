@@ -180,3 +180,5 @@ https://medium.com/better-programming/k8s-tips-give-access-to-your-clusterwith-a
 https://blog.scottlowe.org/2019/07/30/adding-a-name-to-kubernetes-api-server-certificate/
 
 https://stackoverflow.com/questions/46360361/invalid-x509-certificate-for-kubernetes-master
+
+https://help.mayadata.io/hc/en-us/articles/360036744451-Creating-an-unmanaged-Kubernetes-cluster-in-Azure-using-kubeadm
