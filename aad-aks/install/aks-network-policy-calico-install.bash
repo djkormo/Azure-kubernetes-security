@@ -109,16 +109,7 @@ then
     az provider register --namespace Microsoft.ContainerService 
 
 
-    # Create a resource group
-    az group create --name "${AKS_RG}" --location ${AKS_LOCATION}
-
-    # Create a virtual network and subnet
-    az network vnet create \
-        --resource-group ${AKS_RG} \
-        --name "vnet_${AKS_NAME}" \
-        --address-prefixes 10.0.0.0/8 \
-        --subnet-name "subnet_${AKS_NAME}" \
-        --subnet-prefix 10.240.0.0/16
+  
 
    az network vnet list --resource-group ${AKS_RG} -o table
 
